@@ -6,6 +6,7 @@ import com.microservice.customer.model.CustomerCreate;
 import com.microservice.customer.model.CustomerUpdate;
 import com.microservice.customer.repository.CustomersRepository;
 import com.microservice.customer.service.mapper.CustomersMappers;
+import com.microservice.customer.util.ClaseError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +32,7 @@ public class CustomerServiceImpl implements CustomerService{
     public CustomerConsult getCustomerById(String customerDocument) {
 
         if(! customersRepository.existsById(customerDocument)){
-            return new CustomerConsult();
+            return ClaseError.getInstance("El documento ingresado no existe");
         }
         return CustomersMappers.mapCustomerToCustomerConsult( customersRepository.findById(customerDocument).get());
     }
