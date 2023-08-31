@@ -47,7 +47,8 @@ public class CustomerDelegateImpl implements CustomerApiDelegate {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ClaseError.getInstance("El documento es invalido"));
         }
 
-        return customerService.existCustomer(customerDocument) ? ResponseEntity.status(HttpStatus.OK).body(customerService.getCustomerById(customerDocument)) : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ClaseError.getInstance("El documento no existe en el sistema"));
+        //return customerService.existCustomer(customerDocument) ? ResponseEntity.status(HttpStatus.OK).body(customerService.getCustomerById(customerDocument)) : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ClaseError.getInstance("El documento no existe en el sistema"));
+        return ResponseEntity.status(HttpStatus.OK).body(customerService.getCustomerById(customerDocument));
     }
 
 

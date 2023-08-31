@@ -29,6 +29,10 @@ public class CustomerServiceImpl implements CustomerService{
 
     @Override
     public CustomerConsult getCustomerById(String customerDocument) {
+
+        if(! customersRepository.existsById(customerDocument)){
+            return new CustomerConsult();
+        }
         return CustomersMappers.mapCustomerToCustomerConsult( customersRepository.findById(customerDocument).get());
     }
 
