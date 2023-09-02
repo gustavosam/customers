@@ -6,20 +6,18 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ClaseError extends CustomerConsult {
+public class ClassError extends CustomerConsult {
 
     private  String mensajeError;
-    private static ClaseError instance;
+    private static ClassError instance;
 
-
-
-    private ClaseError(){
+    private ClassError(){
 
     }
 
-    public static ClaseError getInstance(String mensaje){
+    public static ClassError getInstance(String mensaje){
         if(instance == null){
-            instance = new ClaseError();
+            instance = new ClassError();
         }
         instance.mensajeError=mensaje;
         return instance;

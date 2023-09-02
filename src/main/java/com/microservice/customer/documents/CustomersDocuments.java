@@ -7,13 +7,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
 
 @Getter
 @Setter
 @Document(collection = "customers")
-public class Customers {
+public class CustomersDocuments {
 
     @Id
     @NotNull

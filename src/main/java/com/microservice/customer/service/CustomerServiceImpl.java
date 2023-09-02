@@ -1,12 +1,12 @@
 package com.microservice.customer.service;
 
-import com.microservice.customer.documents.Customers;
+import com.microservice.customer.documents.CustomersDocuments;
 import com.microservice.customer.model.CustomerConsult;
 import com.microservice.customer.model.CustomerCreate;
 import com.microservice.customer.model.CustomerUpdate;
 import com.microservice.customer.repository.CustomersRepository;
 import com.microservice.customer.service.mapper.CustomersMappers;
-import com.microservice.customer.util.ClaseError;
+import com.microservice.customer.util.ClassError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,27 +32,27 @@ public class CustomerServiceImpl implements CustomerService{
     public CustomerConsult getCustomerById(String customerDocument) {
 
         if(! customersRepository.existsById(customerDocument)){
-            return ClaseError.getInstance("El documento ingresado no existe");
+            return ClassError.getInstance("El documento ingresado no existe");
         }
         return CustomersMappers.mapCustomerToCustomerConsult( customersRepository.findById(customerDocument).get());
     }
 
     @Override
     public String unsubscribeCustomer(String customerDocument) {
-        Customers customers = customersRepository.findById(customerDocument).get();
-        customers.setIsActive(false);
+        CustomersDocuments customersDocuments = customersRepository.findById(customerDocument).get();
+        customersDocuments.setIsActive(false);
 
-        customersRepository.save(customers);
+        customersRepository.save(customersDocuments);
         return "El cliente fue dado de baja";
     }
 
     @Override
     public CustomerConsult updateCustomer(String customerDocument, CustomerUpdate customerUpdate) {
 
-        Customers customers = customersRepository.findById(customerDocument).get();
-        customers.setCustomerName(customerUpdate.getCustomerName());
-        customers.setCustomerEmail(customerUpdate.getCustomerEmail());
+        CustomersDocuments customersDocuments = customersRepository.findById(customerDocument).get();
+        customersDocuments.setCustomerName(customerUpdate.getCustomerName());
+        customersDocuments.setCustomerEmail(customerUpdate.getCustomerEmail());
 
-        return CustomersMappers.mapCustomerToCustomerConsult( customersRepository.save(customers) );
+        return CustomersMappers.mapCustomerToCustomerConsult( customersRepository.save(customersDocuments) );
     }
 }

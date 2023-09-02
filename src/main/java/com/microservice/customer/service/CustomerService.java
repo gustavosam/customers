@@ -1,6 +1,5 @@
 package com.microservice.customer.service;
 
-import com.microservice.customer.documents.Customers;
 import com.microservice.customer.model.CustomerConsult;
 import com.microservice.customer.model.CustomerCreate;
 import com.microservice.customer.model.CustomerUpdate;
