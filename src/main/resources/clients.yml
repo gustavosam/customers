@@ -1,0 +1,152 @@
+openapi: 3.0.0
+info:
+  title: Customers
+  description:
+    This application allows you to create and consult information about a customer.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+tags:
+  - name: clients
+    description: Everything about your clients.
+paths:
+  /client:
+    post:
+      tags:
+        - clients
+      summary: Allows you to create a client.
+      operationId: createClient
+      description: Allows you to create a client.
+      requestBody:
+        required: true
+        description: Allows to register a client.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientCreate'
+      responses:
+        '201':
+          description: The client was registered successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientConsult'
+        '400':
+          description: Request rejected
+  /client/{document}:
+    get:
+      tags:
+        - clients
+      summary: Allows you to consult information about a client.
+      operationId: getClient
+      description: Allows you to consult information about a client.
+      parameters:
+        - name: document
+          in: path
+          description: Client Document
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The consult of the information was made correctly.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientConsult'
+        '400':
+          description: The request was rejected.
+        '404':
+          description: The client was not found.
+
+    patch:
+      tags:
+        - clients
+      summary: Allows you to update information about the client.
+      operationId: updateClient
+      description: Allows you to update information about the client.
+      parameters:
+        - name: document
+          in: path
+          description: Client Document
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: Allows you to update information about the client.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientUpdate'
+      responses:
+        '200':
+          description: The information of the client was changed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientConsult'
+        '400':
+          description: Request Rejected
+        '404':
+          description: The client was not found.
+
+    delete:
+      tags:
+        - clients
+      summary: Allows you to unsubscribe a client.
+      operationId: unsubscribeClient
+      description: Allows you tu unsubscribe a client.
+      parameters:
+        - name: document
+          in: path
+          description: Client Document
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The client was unsuscribe successfully.
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Request Rejected.
+        '404':
+          description: The client was not found.
+
+
+components:
+  schemas:
+    ClientCreate:
+      required:
+        - document
+        - clientType
+        - name
+        - email
+      type: object
+      properties:
+        document:
+          type: string
+        clientType:
+          type: string
+          enum:
+            - PERSONAL
+            - COMPANY
+        name:
+          type: string
+        email:
+          type: string
+    ClientConsult:
+      type: object
+      properties:
+        message:
+          type: string
+    ClientUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string

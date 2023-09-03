@@ -78,7 +78,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputSpec>${project.basedir}/src/main/resources/customers.yml</inputSpec>
+							<inputSpec>${project.basedir}/src/main/resources/clients.yml</inputSpec>
 							<generatorName>spring</generatorName>
 							<apiPackage>com.microservice.customer.api</apiPackage>
 							<modelPackage>com.microservice.customer.model</modelPackage>
