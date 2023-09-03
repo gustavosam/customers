@@ -141,19 +141,8 @@ components:
     CustomerConsult:
       type: object
       properties:
-        customerDocument:
+        message:
           type: string
-        customerType:
-          type: string
-        customerName:
-          type: string
-        customerEmail:
-          type: string
-        isActive:
-          type: boolean
-        customerCreationDate:
-          type: string
-          format: date
     CustomerUpdate:
       type: object
       properties:

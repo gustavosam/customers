@@ -1,14 +1,16 @@
 package com.microservice.customer.service;
 
 import com.microservice.customer.documents.CustomersDocuments;
-import com.microservice.customer.model.CustomerConsult;
 import com.microservice.customer.model.CustomerCreate;
 import com.microservice.customer.model.CustomerUpdate;
 import com.microservice.customer.repository.CustomersRepository;
 import com.microservice.customer.service.mapper.CustomersMappers;
-import com.microservice.customer.util.ClassError;
+import com.microservice.customer.util.Constants;
+import com.microservice.customer.util.CustomerComplementary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
 
 @Service
 public class CustomerServiceImpl implements CustomerService{
@@ -17,10 +19,16 @@ public class CustomerServiceImpl implements CustomerService{
     private CustomersRepository customersRepository;
 
     @Override
-    public CustomerConsult createCustomer(CustomerCreate customers) {
-        return CustomersMappers.mapCustomerToCustomerConsult(
-                customersRepository.save(CustomersMappers.mapCustomerCreateToCustomer(customers))
-        );
+    public CustomerComplementary createCustomer(CustomerCreate customers) {
+
+        CustomersDocuments customersDocuments = CustomersMappers.mapCustomerCreateToCustomerDocuments(customers);
+        customersDocuments.setIsActive(true);
+        customersDocuments.setCustomerCreationDate(LocalDate.now());
+
+        CustomerComplementary customerCreated = CustomersMappers.mapCustomerDocumentsToCustomerComplementary(customersRepository.save(customersDocuments));
+        customerCreated.setMessage(Constants.MESSAGE_CUSTOMER_CREATED);
+
+        return customerCreated;
     }
 
     @Override
@@ -29,30 +37,34 @@ public class CustomerServiceImpl implements CustomerService{
     }
 
     @Override
-    public CustomerConsult getCustomerById(String customerDocument) {
+    public CustomerComplementary getCustomerById(String customerDocument) {
 
-        if(! customersRepository.existsById(customerDocument)){
-            return ClassError.getInstance("El documento ingresado no existe");
-        }
-        return CustomersMappers.mapCustomerToCustomerConsult( customersRepository.findById(customerDocument).get());
+        CustomerComplementary customer = CustomersMappers.mapCustomerDocumentsToCustomerComplementary( customersRepository.findById(customerDocument).orElse(new CustomersDocuments()) );
+        customer.setMessage(Constants.MESSAGE_CUSTOMER_GET);
+
+        return customer;
     }
 
     @Override
     public String unsubscribeCustomer(String customerDocument) {
-        CustomersDocuments customersDocuments = customersRepository.findById(customerDocument).get();
+        CustomersDocuments customersDocuments = customersRepository.findById(customerDocument).orElse(new CustomersDocuments());
         customersDocuments.setIsActive(false);
 
         customersRepository.save(customersDocuments);
-        return "El cliente fue dado de baja";
+
+        return Constants.MESSAGE_CUSTOMER_UNSUBSCRIBE;
     }
 
     @Override
-    public CustomerConsult updateCustomer(String customerDocument, CustomerUpdate customerUpdate) {
+    public CustomerComplementary updateCustomer(String customerDocument, CustomerUpdate customerUpdate) {
 
-        CustomersDocuments customersDocuments = customersRepository.findById(customerDocument).get();
+        CustomersDocuments customersDocuments = customersRepository.findById(customerDocument).orElse(new CustomersDocuments());
         customersDocuments.setCustomerName(customerUpdate.getCustomerName());
         customersDocuments.setCustomerEmail(customerUpdate.getCustomerEmail());
 
-        return CustomersMappers.mapCustomerToCustomerConsult( customersRepository.save(customersDocuments) );
+        CustomerComplementary updatedCustomer = CustomersMappers.mapCustomerDocumentsToCustomerComplementary( customersRepository.save(customersDocuments) );
+        updatedCustomer.setMessage(Constants.MESSAGE_CUSTOMER_UPDATED);
+
+        return updatedCustomer;
     }
 }

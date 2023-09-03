@@ -48,8 +48,7 @@ public class CustomerDelegateImpl implements CustomerApiDelegate {
 
         return customerService.existCustomer(customerDocument)
                 ? ResponseEntity.status(HttpStatus.OK).body(customerService.getCustomerById(customerDocument))
-                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ClassError.getInstance(Constants.MESSAGE_ERROR_CUSTOMER_NOT_EXIST));
-        //return ResponseEntity.status(HttpStatus.OK).body(customerService.getCustomerById(customerDocument));
+                : ResponseEntity.status(HttpStatus.NOT_FOUND).body(ClassError.getInstance(Constants.MESSAGE_ERROR_CUSTOMER_NOT_EXIST));
     }
 
 

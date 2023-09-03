@@ -8,7 +8,6 @@ import lombok.Setter;
 @Setter
 public class ClassError extends CustomerConsult {
 
-    private  String mensajeError;
     private static ClassError instance;
 
     private ClassError(){
@@ -19,7 +18,7 @@ public class ClassError extends CustomerConsult {
         if(instance == null){
             instance = new ClassError();
         }
-        instance.mensajeError=mensaje;
+        instance.setMessage(mensaje);
         return instance;
     }
 }

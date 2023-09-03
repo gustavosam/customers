@@ -1,18 +1,18 @@
 package com.microservice.customer.service;
 
-import com.microservice.customer.model.CustomerConsult;
 import com.microservice.customer.model.CustomerCreate;
 import com.microservice.customer.model.CustomerUpdate;
+import com.microservice.customer.util.CustomerComplementary;
 
 public interface CustomerService {
 
-    CustomerConsult createCustomer(CustomerCreate customers);
+    CustomerComplementary createCustomer(CustomerCreate customers);
 
     Boolean existCustomer(String customerDocument);
 
-    CustomerConsult getCustomerById(String customerDocument);
+    CustomerComplementary getCustomerById(String customerDocument);
 
     String unsubscribeCustomer(String customerDocument);
 
-    CustomerConsult updateCustomer(String customerDocument, CustomerUpdate customer);
+    CustomerComplementary updateCustomer(String customerDocument, CustomerUpdate customer);
 }

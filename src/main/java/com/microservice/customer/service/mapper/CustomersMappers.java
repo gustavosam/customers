@@ -1,35 +1,34 @@
 package com.microservice.customer.service.mapper;
 
 import com.microservice.customer.documents.CustomersDocuments;
-import com.microservice.customer.model.CustomerConsult;
 import com.microservice.customer.model.CustomerCreate;
+import com.microservice.customer.util.CustomerComplementary;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalDate;
 
 @Component
 public class CustomersMappers {
 
-    public static CustomerConsult mapCustomerToCustomerConsult(CustomersDocuments customersDocuments){
-        CustomerConsult customerConsult = new CustomerConsult();
-        customerConsult.setCustomerDocument(customersDocuments.getCustomerDocument());
-        customerConsult.setCustomerName(customersDocuments.getCustomerName());
-        customerConsult.setCustomerEmail(customersDocuments.getCustomerEmail());
-        customerConsult.setCustomerType(customersDocuments.getCustomerType());
-        customerConsult.setIsActive(customersDocuments.getIsActive());
-        customerConsult.setCustomerCreationDate(customersDocuments.getCustomerCreationDate());
+    public static CustomerComplementary mapCustomerDocumentsToCustomerComplementary(CustomersDocuments customersDocuments){
+        CustomerComplementary customer = new CustomerComplementary();
 
-        return customerConsult;
+        customer.setCustomerDocument(customersDocuments.getCustomerDocument());
+        customer.setCustomerName(customersDocuments.getCustomerName());
+        customer.setCustomerEmail(customersDocuments.getCustomerEmail());
+        customer.setCustomerType(customersDocuments.getCustomerType());
+        customer.setIsActive(customersDocuments.getIsActive());
+        customer.setCustomerCreationDate(customersDocuments.getCustomerCreationDate());
+
+        return customer;
     }
 
-    public static CustomersDocuments mapCustomerCreateToCustomer(CustomerCreate customerCreate){
+    public static CustomersDocuments mapCustomerCreateToCustomerDocuments(CustomerCreate customerCreate){
         CustomersDocuments customersDocuments = new CustomersDocuments();
+
         customersDocuments.setCustomerDocument(customerCreate.getCustomerDocument());
         customersDocuments.setCustomerEmail(customerCreate.getCustomerEmail());
         customersDocuments.setCustomerName(customerCreate.getCustomerName());
         customersDocuments.setCustomerType(customerCreate.getCustomerType().getValue());
-        customersDocuments.setIsActive(true);
-        customersDocuments.setCustomerCreationDate(LocalDate.now());
+
         return customersDocuments;
     }
 }
