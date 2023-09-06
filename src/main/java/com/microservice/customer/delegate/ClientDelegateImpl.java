@@ -5,6 +5,7 @@ import com.microservice.customer.model.ClientConsult;
 import com.microservice.customer.model.ClientCreate;
 import com.microservice.customer.model.ClientUpdate;
 import com.microservice.customer.service.ClientService;
+import com.microservice.customer.util.ClientDto;
 import com.microservice.customer.util.Constants;
 import com.microservice.customer.util.ErrorC;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,5 +79,53 @@ public class ClientDelegateImpl implements ClientApiDelegate {
     }
 
     return ResponseEntity.ok(clientService.updateClient(document, client));
+  }
+
+  @Override
+  public ResponseEntity<ClientConsult> updatePyme(String document) {
+
+    if (!clientService.existClient(document)) {
+      return new ResponseEntity<>(ErrorC.getObj(Constants.CLIENT_NOT_EXIST), HttpStatus.NOT_FOUND);
+    }
+
+    ClientDto clientDto = clientService.getClientById(document);
+
+    if (!clientDto.getClientType().equalsIgnoreCase("COMPANY")) {
+      return ResponseEntity.badRequest().body(ErrorC.getObj(Constants.CANT_UPDATE_PYME));
+    }
+
+    if (!clientService.haveOrdinaryAccount(document)) {
+      return ResponseEntity.badRequest().body(ErrorC.getObj(Constants.NOT_ORDINARY_ACCOUNT));
+    }
+
+    if (!clientService.haveCreditCard(document)) {
+      return ResponseEntity.badRequest().body(ErrorC.getObj(Constants.NOT_CREDIT_CARD));
+    }
+
+    return ResponseEntity.ok(clientService.updatePyme(document));
+  }
+
+  @Override
+  public ResponseEntity<ClientConsult> updateVip(String document) {
+
+    if (!clientService.existClient(document)) {
+      return new ResponseEntity<>(ErrorC.getObj(Constants.CLIENT_NOT_EXIST), HttpStatus.NOT_FOUND);
+    }
+
+    ClientDto clientDto = clientService.getClientById(document);
+
+    if (!clientDto.getClientType().equalsIgnoreCase("PERSONAL")) {
+      return ResponseEntity.badRequest().body(ErrorC.getObj(Constants.CANT_UPDATE_VIP));
+    }
+
+    if (!clientService.haveSavingAccount(document)) {
+      return ResponseEntity.badRequest().body(ErrorC.getObj(Constants.NOT_SAVING_ACCOUNT));
+    }
+
+    if (!clientService.haveCreditCard(document)) {
+      return ResponseEntity.badRequest().body(ErrorC.getObj(Constants.NOT_CREDIT_CARD));
+    }
+
+    return ResponseEntity.ok(clientService.updateVip(document));
   }
 }

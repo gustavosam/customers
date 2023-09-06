@@ -19,4 +19,14 @@ public interface ClientService {
   String unsubscribeClient(String document);
 
   ClientDto updateClient(String document, ClientUpdate client);
+
+  ClientDto updatePyme(String document);
+
+  ClientDto updateVip(String document);
+
+  Boolean haveOrdinaryAccount(String document);
+
+  Boolean haveSavingAccount(String document);
+
+  Boolean haveCreditCard(String document);
 }
