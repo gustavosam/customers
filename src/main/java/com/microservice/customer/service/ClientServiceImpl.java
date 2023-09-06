@@ -6,7 +6,7 @@ import com.microservice.customer.feignclient.CreditCardFeignClient;
 import com.microservice.customer.model.ClientCreate;
 import com.microservice.customer.model.ClientUpdate;
 import com.microservice.customer.repository.ClientRepository;
-import com.microservice.customer.service.mapper.Mappers;
+import com.microservice.customer.service.mapper.MapstructMapper;
 import com.microservice.customer.util.AccountDto;
 import com.microservice.customer.util.CardDto;
 import com.microservice.customer.util.ClientDto;
@@ -32,14 +32,17 @@ public class ClientServiceImpl implements ClientService {
   @Autowired
   private CreditCardFeignClient creditCardFeignClient;
 
+  @Autowired
+  private MapstructMapper mapper;
+
   @Override
   public ClientDto createClient(ClientCreate client) {
 
-    ClientDocument clientDoc = Mappers.clientCreateToClientDocument(client);
+    ClientDocument clientDoc = mapper.clientCreateToClientDocument(client);
     clientDoc.setIsActive(true);
     clientDoc.setClientCreationDate(LocalDate.now());
 
-    ClientDto clientDto = Mappers.clientDocToClientDto(clientRepository.save(clientDoc));
+    ClientDto clientDto = mapper.clientDocToClientDto(clientRepository.save(clientDoc));
     clientDto.setMessage(Constants.CLIENT_CREATED);
 
     return clientDto;
@@ -53,7 +56,7 @@ public class ClientServiceImpl implements ClientService {
   @Override
   public ClientDto getClientById(String document) {
 
-    ClientDto clientDto = Mappers.clientDocToClientDto(clientRepository.findById(document)
+    ClientDto clientDto = mapper.clientDocToClientDto(clientRepository.findById(document)
                     .orElse(new ClientDocument()));
 
     clientDto.setMessage(Constants.CLIENT_GET);
@@ -83,7 +86,7 @@ public class ClientServiceImpl implements ClientService {
     clientDocument.setName(clientUpdate.getName());
     clientDocument.setEmail(clientUpdate.getEmail());
 
-    ClientDto updatedClient = Mappers.clientDocToClientDto(clientRepository.save(clientDocument));
+    ClientDto updatedClient = mapper.clientDocToClientDto(clientRepository.save(clientDocument));
     updatedClient.setMessage(Constants.CLIENT_UPDATED);
 
     return updatedClient;
@@ -96,7 +99,7 @@ public class ClientServiceImpl implements ClientService {
 
     clientDocument.setClientType("PYME");
 
-    ClientDto updatedClient = Mappers.clientDocToClientDto(clientRepository.save(clientDocument));
+    ClientDto updatedClient = mapper.clientDocToClientDto(clientRepository.save(clientDocument));
     updatedClient.setMessage(Constants.CLIENT_UPDATED);
 
     return updatedClient;
@@ -109,7 +112,7 @@ public class ClientServiceImpl implements ClientService {
 
     clientDocument.setClientType("VIP");
 
-    ClientDto updatedClient = Mappers.clientDocToClientDto(clientRepository.save(clientDocument));
+    ClientDto updatedClient = mapper.clientDocToClientDto(clientRepository.save(clientDocument));
     updatedClient.setMessage(Constants.CLIENT_UPDATED);
 
     return updatedClient;
