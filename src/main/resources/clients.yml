@@ -182,8 +182,6 @@ components:
           enum:
             - PERSONAL
             - COMPANY
-            - PERSONALVIP
-            - COMPANYPYME
         name:
           type: string
         email:
