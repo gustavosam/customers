@@ -1,20 +1,20 @@
 package com.microservice.customer.service;
 
 import com.microservice.customer.documents.ClientDocument;
-import com.microservice.customer.feignclient.AccountsFeignClient;
-import com.microservice.customer.feignclient.CreditCardFeignClient;
 import com.microservice.customer.model.ClientCreate;
 import com.microservice.customer.model.ClientUpdate;
 import com.microservice.customer.repository.ClientRepository;
 import com.microservice.customer.service.mapper.MapstructMapper;
-import com.microservice.customer.util.AccountDto;
 import com.microservice.customer.util.CardDto;
 import com.microservice.customer.util.ClientDto;
 import com.microservice.customer.util.Constants;
 import java.time.LocalDate;
-import java.util.List;
+import com.microservice.customer.webclient.AccountsWebClient;
+import com.microservice.customer.webclient.CreditCardWebClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * La clase ClientServiceImpl contiene la lógica de negocio para la creación
@@ -27,128 +27,142 @@ public class ClientServiceImpl implements ClientService {
   private ClientRepository clientRepository;
 
   @Autowired
-  private AccountsFeignClient accountsFeignClient;
+  private AccountsWebClient accountsWebClient;
 
   @Autowired
-  private CreditCardFeignClient creditCardFeignClient;
+  private CreditCardWebClient creditCardWebClient;
 
   @Autowired
   private MapstructMapper mapper;
 
   @Override
-  public ClientDto createClient(ClientCreate client) {
+  public Mono<ClientDto> createClient(ClientCreate client) {
 
-    ClientDocument clientDoc = mapper.clientCreateToClientDocument(client);
-    clientDoc.setIsActive(true);
-    clientDoc.setClientCreationDate(LocalDate.now());
 
-    ClientDto clientDto = mapper.clientDocToClientDto(clientRepository.save(clientDoc));
-    clientDto.setMessage(Constants.CLIENT_CREATED);
+    ClientDocument clientDocument = mapper.clientCreateToClientDocument(client);
+    clientDocument.setIsActive(true);
+    clientDocument.setClientCreationDate(LocalDate.now());
 
-    return clientDto;
+    Mono<ClientDocument> clientDocumentMonoCreated = clientRepository.save(clientDocument);
+
+    Mono<ClientDto> clientDtoMono = clientDocumentMonoCreated.map(clientCreated -> mapper.clientDocToClientDto(clientCreated));
+
+    return clientDtoMono.map(clientDto -> {
+      clientDto.setMessage(Constants.CLIENT_CREATED);
+      return clientDto;
+    });
+
   }
 
   @Override
-  public Boolean existClient(String document) {
+  public Mono<Boolean> existClient(String document) {
     return clientRepository.existsById(document);
   }
 
   @Override
-  public ClientDto getClientById(String document) {
+  public Mono<ClientDto> getClientById(String document) {
 
-    ClientDto clientDto = mapper.clientDocToClientDto(clientRepository.findById(document)
-                    .orElse(new ClientDocument()));
+    Mono<ClientDocument> clientDocumentMono = clientRepository.findById(document);
 
-    clientDto.setMessage(Constants.CLIENT_GET);
-
-    return clientDto;
+    return clientDocumentMono.map(clientDocument -> {
+      ClientDto clientDto = mapper.clientDocToClientDto(clientDocument);
+      clientDto.setMessage(Constants.CLIENT_GET);
+      return clientDto;
+    });
   }
 
   @Override
   public String unsubscribeClient(String document) {
 
-    ClientDocument clientDoc = clientRepository.findById(document)
-            .orElse(new ClientDocument());
+    Mono<ClientDocument> clientDocumentMono = clientRepository.findById(document);
 
-    clientDoc.setIsActive(false);
-
-    clientRepository.save(clientDoc);
+    Mono<ClientDocument> clientDocumentMonoUnsubscribe = clientDocumentMono.flatMap(clientDocument -> {
+      clientDocument.setIsActive(false);
+      return clientRepository.save(clientDocument);
+    });
 
     return Constants.CLIENT_UNSUBSCRIBE;
   }
 
   @Override
-  public ClientDto updateClient(String document, ClientUpdate clientUpdate) {
+  public Mono<ClientDto> updateClient(String document, ClientUpdate clientUpdate) {
 
-    ClientDocument clientDocument = clientRepository.findById(document)
-            .orElse(new ClientDocument());
+    Mono<ClientDocument> clientDocumentMono = clientRepository.findById(document);
 
-    clientDocument.setName(clientUpdate.getName());
-    clientDocument.setEmail(clientUpdate.getEmail());
+    Mono<ClientDocument> clientDocumentMonoUpdated = clientDocumentMono.flatMap(clientDocument -> {
+      clientDocument.setName(clientUpdate.getName());
+      clientDocument.setEmail(clientUpdate.getEmail());
 
-    ClientDto updatedClient = mapper.clientDocToClientDto(clientRepository.save(clientDocument));
-    updatedClient.setMessage(Constants.CLIENT_UPDATED);
+      return clientRepository.save(clientDocument);
+    });
 
-    return updatedClient;
+    Mono<ClientDto> clientDtoMono = clientDocumentMonoUpdated.map(clientDocument -> mapper.clientDocToClientDto(clientDocument));
+
+    return clientDtoMono.map(clientDto -> {
+      clientDto.setMessage(Constants.CLIENT_UPDATED);
+      return clientDto;
+    });
+
   }
 
   @Override
-  public ClientDto updatePyme(String document) {
-    ClientDocument clientDocument = clientRepository.findById(document)
-            .orElse(new ClientDocument());
+  public Mono<ClientDto> updatePyme(String document) {
 
-    clientDocument.setClientType("PYME");
+    Mono<ClientDocument> clientDocumentMono = clientRepository.findById(document);
 
-    ClientDto updatedClient = mapper.clientDocToClientDto(clientRepository.save(clientDocument));
-    updatedClient.setMessage(Constants.CLIENT_UPDATED);
+    Mono<ClientDocument> clientDocumentMonoUpdated = clientDocumentMono.flatMap(clientDocument -> {
+      clientDocument.setClientType("PYME");
+      return clientRepository.save(clientDocument);
+    });
 
-    return updatedClient;
+    Mono<ClientDto> clientDtoMono = clientDocumentMonoUpdated.map(clientDocument -> mapper.clientDocToClientDto(clientDocument));
+
+    return clientDtoMono.map(clientDto -> {
+      clientDto.setMessage(Constants.CLIENT_UPDATED);
+      return clientDto;
+    });
   }
 
   @Override
-  public ClientDto updateVip(String document) {
-    ClientDocument clientDocument = clientRepository.findById(document)
-            .orElse(new ClientDocument());
+  public Mono<ClientDto> updateVip(String document) {
 
-    clientDocument.setClientType("VIP");
+    Mono<ClientDocument> clientDocumentMono = clientRepository.findById(document);
 
-    ClientDto updatedClient = mapper.clientDocToClientDto(clientRepository.save(clientDocument));
-    updatedClient.setMessage(Constants.CLIENT_UPDATED);
+    Mono<ClientDocument> clientDocumentMonoUpdated = clientDocumentMono.flatMap(clientDocument -> {
+      clientDocument.setClientType("VIP");
+      return clientRepository.save(clientDocument);
+    });
 
-    return updatedClient;
+    Mono<ClientDto> clientDtoMono = clientDocumentMonoUpdated.map(clientDocument -> mapper.clientDocToClientDto(clientDocument));
+
+    return clientDtoMono.map(clientDto -> {
+      clientDto.setMessage(Constants.CLIENT_UPDATED);
+      return clientDto;
+    });
+
   }
 
   @Override
-  public Boolean haveOrdinaryAccount(String document) {
-    List<AccountDto> accountDtos = accountsFeignClient.getAccountsByClient(document);
+  public Mono<Boolean> haveOrdinaryAccount(String document) {
+    return accountsWebClient.getAccountsByClient(document)
+            .any(account -> account.getAccountType().equalsIgnoreCase("CORRIENTE"));
 
-    if (accountDtos.isEmpty()) {
-      return false;
-    }
-
-    return accountDtos.stream()
-            .anyMatch(account -> account.getAccountType().equalsIgnoreCase("CORRIENTE"));
   }
 
   @Override
-  public Boolean haveSavingAccount(String document) {
-    List<AccountDto> accountDtos = accountsFeignClient.getAccountsByClient(document);
+  public Mono<Boolean> haveSavingAccount(String document) {
+    return accountsWebClient.getAccountsByClient(document)
+            .any(account -> account.getAccountType().equalsIgnoreCase("AHORRO")
+                    && account.getAccountAmount() >= 500);
 
-    if (accountDtos.isEmpty()) {
-      return false;
-    }
-
-    return accountDtos.stream()
-            .anyMatch(account -> {
-              return account.getAccountType().equalsIgnoreCase("AHORRO")
-                      && account.getAccountAmount() >= 500;
-            });
   }
 
   @Override
-  public Boolean haveCreditCard(String document) {
-    List<CardDto> cardDtos = creditCardFeignClient.getCreditCards(document);
+  public Mono<Boolean> haveCreditCard(String document) {
+    Flux<CardDto> cardDtos = creditCardWebClient.getCreditCards(document);
 
-    return !cardDtos.isEmpty();
+    return cardDtos
+            .count()
+            .map(count -> count > 0);
   }
 }

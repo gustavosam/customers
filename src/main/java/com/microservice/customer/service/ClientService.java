@@ -3,6 +3,7 @@ package com.microservice.customer.service;
 import com.microservice.customer.model.ClientCreate;
 import com.microservice.customer.model.ClientUpdate;
 import com.microservice.customer.util.ClientDto;
+import reactor.core.publisher.Mono;
 
 /**
  * Interfaz en la que se define métodos que serán implementados por ClientServiceImpl
@@ -10,23 +11,23 @@ import com.microservice.customer.util.ClientDto;
  * */
 public interface ClientService {
 
-  ClientDto createClient(ClientCreate client);
+  Mono<ClientDto> createClient(ClientCreate client);
 
-  Boolean existClient(String document);
+  Mono<Boolean> existClient(String document);
 
-  ClientDto getClientById(String document);
+  Mono<ClientDto> getClientById(String document);
 
   String unsubscribeClient(String document);
 
-  ClientDto updateClient(String document, ClientUpdate client);
+  Mono<ClientDto> updateClient(String document, ClientUpdate client);
 
-  ClientDto updatePyme(String document);
+  Mono<ClientDto> updatePyme(String document);
 
-  ClientDto updateVip(String document);
+  Mono<ClientDto> updateVip(String document);
 
-  Boolean haveOrdinaryAccount(String document);
+  Mono<Boolean> haveOrdinaryAccount(String document);
 
-  Boolean haveSavingAccount(String document);
+  Mono<Boolean> haveSavingAccount(String document);
 
-  Boolean haveCreditCard(String document);
+  Mono<Boolean> haveCreditCard(String document);
 }

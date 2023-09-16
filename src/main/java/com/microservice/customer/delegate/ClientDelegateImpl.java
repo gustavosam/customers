@@ -12,6 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
+
 
 /**
  * Esta clase implementa a la interfaz delegate generada por open api.
@@ -23,109 +26,166 @@ public class ClientDelegateImpl implements ClientApiDelegate {
   private ClientService clientService;
 
   @Override
-  public ResponseEntity<ClientConsult> createClient(ClientCreate clientCreate) {
+  public Mono<ResponseEntity<ClientConsult>> createClient(Mono<ClientCreate> clientCreate,
+                                                   ServerWebExchange exchange)  {
 
-    if (clientCreate.getDocument() == null) {
-      return ResponseEntity.badRequest().body(ErrorC.getObj(Constants.DOCUMENT_EMPTY));
-    }
+    return clientCreate.flatMap(client -> {
 
-    if (clientCreate.getEmail() == null) {
-      return ResponseEntity.badRequest().body(ErrorC.getObj(Constants.EMAIL_EMPTY));
-    }
+      if (client.getDocument() == null) {
+        return Mono.just(ResponseEntity.badRequest().body(ErrorC.getObj(Constants.DOCUMENT_EMPTY)));
+      }
 
-    if (clientCreate.getName() == null) {
-      return ResponseEntity.badRequest().body(ErrorC.getObj(Constants.NAME_EMPTY));
-    }
+      if (client.getEmail() == null) {
+        return Mono.just(ResponseEntity.badRequest().body(ErrorC.getObj(Constants.EMAIL_EMPTY)));
+      }
 
-    if (clientCreate.getClientType() == null) {
-      return ResponseEntity.badRequest().body(ErrorC.getObj(Constants.CLIENT_TYPE_EMPTY));
-    }
+      if (client.getName() == null) {
+        return Mono.just(ResponseEntity.badRequest().body(ErrorC.getObj(Constants.NAME_EMPTY)));
+      }
 
-    return clientService.existClient(clientCreate.getDocument())
-      ? ResponseEntity.badRequest().body(ErrorC.getObj(Constants.CLIENT_EXIST))
-      : ResponseEntity.status(HttpStatus.CREATED).body(clientService.createClient(clientCreate));
+      if (client.getClientType() == null) {
+        return Mono.just(ResponseEntity.badRequest().body(ErrorC.getObj(Constants.CLIENT_TYPE_EMPTY)));
+      }
+
+      Mono<Boolean> clientExist = clientService.existClient(client.getDocument());
+
+      return clientExist.flatMap(clientExists -> {
+
+        if (clientExists) {
+          return Mono.just(ResponseEntity.badRequest().body(ErrorC.getObj(Constants.CLIENT_EXIST)));
+        }
+
+        return clientService.createClient(client)
+                  .map(clientConsult -> ResponseEntity.status(HttpStatus.CREATED).body(clientConsult));
+
+      });
+    });
   }
 
   @Override
-  public ResponseEntity<ClientConsult> getClient(String document) {
+  public Mono<ResponseEntity<ClientConsult>> getClient(String document,
+                                                       ServerWebExchange exchange)  {
 
     return clientService.existClient(document)
-      ? ResponseEntity.ok(clientService.getClientById(document))
-      : new ResponseEntity<>(ErrorC.getObj(Constants.CLIENT_NOT_EXIST), HttpStatus.NOT_FOUND);
+            .flatMap(clientExist -> {
+
+              if(clientExist){
+                return clientService.getClientById(document).map(ResponseEntity::ok);
+              }
+
+              return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(ErrorC.getObj(Constants.CLIENT_NOT_EXIST)));
+            });
   }
 
-
   @Override
-  public ResponseEntity<String> unsubscribeClient(String document) {
+  public Mono<ResponseEntity<ClientConsult>> updateClient(String document,
+                                                          Mono<ClientUpdate> clientUpdate,
+                                                          ServerWebExchange exchange) {
 
     return clientService.existClient(document)
-      ? ResponseEntity.ok(clientService.unsubscribeClient(document))
-      : new ResponseEntity<>(Constants.CLIENT_NOT_EXIST, HttpStatus.NOT_FOUND);
+            .flatMap(clientExist -> {
+
+              if (!clientExist) {
+                return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(ErrorC.getObj(Constants.CLIENT_NOT_EXIST)));
+              }
+
+              return clientUpdate.flatMap(updatedClient -> {
+
+                if (updatedClient.getEmail() == null) {
+                  return Mono.just(ResponseEntity.badRequest().body(ErrorC.getObj(Constants.EMAIL_EMPTY)));
+                }
+
+                if (updatedClient.getName() == null) {
+                  return Mono.just(ResponseEntity.badRequest().body(ErrorC.getObj(Constants.NAME_EMPTY)));
+                }
+
+                return clientService.updateClient(document, updatedClient)
+                        .map(ResponseEntity::ok);
+              });
+            });
+
   }
 
   @Override
-  public ResponseEntity<ClientConsult> updateClient(String document, ClientUpdate client) {
+  public Mono<ResponseEntity<ClientConsult>> updatePyme(String document,
+                                                        ServerWebExchange exchange) {
 
-    if (!clientService.existClient(document)) {
-      return new ResponseEntity<>(ErrorC.getObj(Constants.CLIENT_NOT_EXIST), HttpStatus.NOT_FOUND);
-    }
 
-    if (client.getEmail() == null) {
-      return ResponseEntity.badRequest().body(ErrorC.getObj(Constants.EMAIL_EMPTY));
-    }
+    return clientService.existClient(document).flatMap(exist -> {
+      if (!exist) {
+        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(ErrorC.getObj(Constants.CLIENT_NOT_EXIST)));
+      }
 
-    if (client.getName() == null) {
-      return ResponseEntity.badRequest().body(ErrorC.getObj(Constants.NAME_EMPTY));
-    }
+      Mono<ClientDto> clientDtoMono = clientService.getClientById(document);
 
-    return ResponseEntity.ok(clientService.updateClient(document, client));
+      return clientDtoMono.flatMap(clientDto -> {
+        if (!clientDto.getClientType().equalsIgnoreCase("COMPANY")) {
+          return Mono.just(ResponseEntity.badRequest().body(ErrorC.getObj(Constants.CANT_UPDATE_PYME)));
+        }
+
+        Mono<Boolean> haveOrdinaryAccount = clientService.haveOrdinaryAccount(document);
+        Mono<Boolean> haveCreditCard = clientService.haveCreditCard(document);
+
+        return haveOrdinaryAccount.zipWith(haveCreditCard).flatMap(tuple -> {
+
+          Boolean haveOrdinaryAcc = tuple.getT1();
+          Boolean haveCard = tuple.getT2();
+
+          if(!haveOrdinaryAcc){
+            return Mono.just(ResponseEntity.badRequest().body(ErrorC.getObj(Constants.NOT_ORDINARY_ACCOUNT)));
+          }
+
+          if(!haveCard){
+            return Mono.just(ResponseEntity.badRequest().body(ErrorC.getObj(Constants.NOT_CREDIT_CARD)));
+          }
+          return clientService.updatePyme(document)
+                  .map(ResponseEntity::ok);
+
+        });
+
+      });
+    });
   }
 
   @Override
-  public ResponseEntity<ClientConsult> updatePyme(String document) {
+  public Mono<ResponseEntity<ClientConsult>> updateVip(String document,
+                                                       ServerWebExchange exchange) {
 
-    if (!clientService.existClient(document)) {
-      return new ResponseEntity<>(ErrorC.getObj(Constants.CLIENT_NOT_EXIST), HttpStatus.NOT_FOUND);
-    }
+    return clientService.existClient(document).flatMap(exist -> {
 
-    ClientDto clientDto = clientService.getClientById(document);
+      if(!exist) {
+        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(ErrorC.getObj(Constants.CLIENT_NOT_EXIST)));
+      }
 
-    if (!clientDto.getClientType().equalsIgnoreCase("COMPANY")) {
-      return ResponseEntity.badRequest().body(ErrorC.getObj(Constants.CANT_UPDATE_PYME));
-    }
+      Mono<ClientDto> clientDtoMono = clientService.getClientById(document);
 
-    if (!clientService.haveOrdinaryAccount(document)) {
-      return ResponseEntity.badRequest().body(ErrorC.getObj(Constants.NOT_ORDINARY_ACCOUNT));
-    }
+      return clientDtoMono.flatMap(clientDto -> {
+        if(!clientDto.getClientType().equalsIgnoreCase("PERSONAL")){
+          return Mono.just(ResponseEntity.badRequest().body(ErrorC.getObj(Constants.CANT_UPDATE_VIP)));
+        }
 
-    if (!clientService.haveCreditCard(document)) {
-      return ResponseEntity.badRequest().body(ErrorC.getObj(Constants.NOT_CREDIT_CARD));
-    }
+        Mono<Boolean> haveSavingAccount = clientService.haveSavingAccount(document);
+        Mono<Boolean> haveCreditCard = clientService.haveCreditCard(document);
 
-    return ResponseEntity.ok(clientService.updatePyme(document));
-  }
+        return haveSavingAccount.zipWith(haveCreditCard).flatMap(tuple -> {
 
-  @Override
-  public ResponseEntity<ClientConsult> updateVip(String document) {
+          Boolean haveSavingAcc = tuple.getT1();
+          Boolean haveCard = tuple.getT2();
 
-    if (!clientService.existClient(document)) {
-      return new ResponseEntity<>(ErrorC.getObj(Constants.CLIENT_NOT_EXIST), HttpStatus.NOT_FOUND);
-    }
+          if(!haveSavingAcc){
+            return Mono.just(ResponseEntity.badRequest().body(ErrorC.getObj(Constants.NOT_SAVING_ACCOUNT)));
+          }
 
-    ClientDto clientDto = clientService.getClientById(document);
+          if(!haveCard){
+            return Mono.just(ResponseEntity.badRequest().body(ErrorC.getObj(Constants.NOT_CREDIT_CARD)));
+          }
 
-    if (!clientDto.getClientType().equalsIgnoreCase("PERSONAL")) {
-      return ResponseEntity.badRequest().body(ErrorC.getObj(Constants.CANT_UPDATE_VIP));
-    }
+          return clientService.updateVip(document)
+                  .map(ResponseEntity::ok);
 
-    if (!clientService.haveSavingAccount(document)) {
-      return ResponseEntity.badRequest().body(ErrorC.getObj(Constants.NOT_SAVING_ACCOUNT));
-    }
+        });
+      });
 
-    if (!clientService.haveCreditCard(document)) {
-      return ResponseEntity.badRequest().body(ErrorC.getObj(Constants.NOT_CREDIT_CARD));
-    }
-
-    return ResponseEntity.ok(clientService.updateVip(document));
+    });
   }
 }
