@@ -1,16 +1,17 @@
 package com.microservice.customer.service;
 
 import com.microservice.customer.documents.ClientDocument;
-import com.microservice.customer.model.ClientCreate;
-import com.microservice.customer.model.ClientUpdate;
+import com.microservice.customer.model.*;
 import com.microservice.customer.repository.ClientRepository;
 import com.microservice.customer.service.mapper.MapstructMapper;
-import com.microservice.customer.util.CardDto;
-import com.microservice.customer.util.ClientDto;
-import com.microservice.customer.util.Constants;
+import com.microservice.customer.util.*;
+
 import java.time.LocalDate;
+import java.util.List;
+
 import com.microservice.customer.webclient.AccountsWebClient;
 import com.microservice.customer.webclient.CreditCardWebClient;
+import com.microservice.customer.webclient.CreditsWebClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -33,6 +34,9 @@ public class ClientServiceImpl implements ClientService {
   private CreditCardWebClient creditCardWebClient;
 
   @Autowired
+  private CreditsWebClient creditsWebClient;
+
+  @Autowired
   private MapstructMapper mapper;
 
   @Override
@@ -41,6 +45,7 @@ public class ClientServiceImpl implements ClientService {
 
     ClientDocument clientDocument = mapper.clientCreateToClientDocument(client);
     clientDocument.setIsActive(true);
+    clientDocument.setExpiredDebt(false);
     clientDocument.setClientCreationDate(LocalDate.now());
 
     Mono<ClientDocument> clientDocumentMonoCreated = clientRepository.save(clientDocument);
@@ -164,5 +169,28 @@ public class ClientServiceImpl implements ClientService {
     return cardDtos
             .count()
             .map(count -> count > 0);
+  }
+
+  @Override
+  public Mono<Products> getProducts(String document) {
+
+    Flux<AccountDto> accountDtoFlux = accountsWebClient.getAccountsByClient(document);
+    Flux<CardDto> cardDtoFlux = creditCardWebClient.getCreditCards(document);
+    Flux<CreditDto> creditDtoFlux = creditsWebClient.getCreditsByClient(document);
+
+    return Mono.zip(accountDtoFlux.collectList(), cardDtoFlux.collectList(), creditDtoFlux.collectList())
+            .map(tuple -> {
+
+              List<Accounts> accounts = mapper.mapLisAccountDtoToListAccounts(tuple.getT1());
+              List<Credits> credits = mapper.mapLisCreditsDtoToListCredits(tuple.getT3());
+              List<CreditCards> creditCards = mapper.mapLisCardsDtoToListCards(tuple.getT2());
+
+              Products products = new Products();
+              products.setAccounts(accounts);
+              products.setCredits(credits);
+              products.setCreditCards(creditCards);
+
+              return products;
+            });
   }
 }

@@ -32,5 +32,7 @@ public class ClientDocument {
   @NotNull
   private Boolean isActive;
 
+  private Boolean expiredDebt;
+
   private LocalDate clientCreationDate;
 }

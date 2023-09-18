@@ -4,6 +4,7 @@ import com.microservice.customer.api.ClientApiDelegate;
 import com.microservice.customer.model.ClientConsult;
 import com.microservice.customer.model.ClientCreate;
 import com.microservice.customer.model.ClientUpdate;
+import com.microservice.customer.model.Products;
 import com.microservice.customer.service.ClientService;
 import com.microservice.customer.util.ClientDto;
 import com.microservice.customer.util.Constants;
@@ -187,5 +188,13 @@ public class ClientDelegateImpl implements ClientApiDelegate {
       });
 
     });
+  }
+
+
+  @Override
+  public Mono<ResponseEntity<Products>> getProducts(String document,
+                                                    ServerWebExchange exchange){
+
+    return clientService.getProducts(document).map(ResponseEntity::ok);
   }
 }

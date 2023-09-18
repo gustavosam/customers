@@ -2,6 +2,7 @@ package com.microservice.customer.service;
 
 import com.microservice.customer.model.ClientCreate;
 import com.microservice.customer.model.ClientUpdate;
+import com.microservice.customer.model.Products;
 import com.microservice.customer.util.ClientDto;
 import reactor.core.publisher.Mono;
 
@@ -30,4 +31,6 @@ public interface ClientService {
   Mono<Boolean> haveSavingAccount(String document);
 
   Mono<Boolean> haveCreditCard(String document);
+
+  Mono<Products> getProducts(String document);
 }

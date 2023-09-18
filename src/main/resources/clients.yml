@@ -164,6 +164,30 @@ paths:
         '400':
           description: Reques rejected.
 
+  /client/{document}/products:
+    get:
+      tags:
+        - clients
+      summary: Allows you to obtain information about your products.
+      operationId: getProducts
+      description: Get information about products of a client.
+      parameters:
+        - name: document
+          in: path
+          description: Client Document
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Information client's products
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Products'
+        '400':
+          description: Request Rejected.
+
 
 components:
   schemas:
@@ -197,4 +221,43 @@ components:
         name:
           type: string
         email:
+          type: string
+    Products:
+      type: object
+      properties:
+        accounts:
+          items:
+            $ref: '#/components/schemas/Accounts'
+        credits:
+          items:
+            $ref: '#/components/schemas/Credits'
+        creditCards:
+          items:
+            $ref: '#/components/schemas/CreditCards'
+    Accounts:
+      type: object
+      properties:
+        accountNumber:
+          type: string
+        accountType:
+          type: string
+        accountAmount:
+          type: number
+          format: double
+    Credits:
+      type: object
+      properties:
+        creditNumber:
+          type: string
+        creditType:
+          type: string
+        creditAmount:
+          type: number
+          format: double
+    CreditCards:
+      type: object
+      properties:
+        cardNumber:
+          type: string
+        cardAmount:
           type: string

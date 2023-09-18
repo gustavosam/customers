@@ -24,5 +24,7 @@ public class ClientDto extends ClientConsult {
 
   private Boolean isActive;
 
+  private Boolean expiredDebt;
+
   private LocalDate clientCreationDate;
 }
