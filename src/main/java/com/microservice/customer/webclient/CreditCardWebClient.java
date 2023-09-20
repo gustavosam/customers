@@ -14,7 +14,7 @@ public class CreditCardWebClient {
   @Autowired
   private WebClient.Builder webClientBuilder;
 
-  @CircuitBreaker(name = "myCircuitBreaker", fallbackMethod = "fallbackMethod")
+  @CircuitBreaker(name = "circuitBreakerCreditCard", fallbackMethod = "fallbackMethod")
   public Flux<CardDto> getCreditCards(String document){
     return webClientBuilder.build()
             .get()

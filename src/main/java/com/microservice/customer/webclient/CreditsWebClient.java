@@ -14,7 +14,7 @@ public class CreditsWebClient {
   @Autowired
   private WebClient.Builder webClientBuilder;
 
-  @CircuitBreaker(name = "myCircuitBreaker", fallbackMethod = "fallbackMethod")
+  @CircuitBreaker(name = "circuitBreakerCredit", fallbackMethod = "fallbackMethod")
   public Flux<CreditDto> getCreditsByClient(String clientDocument){
     return webClientBuilder.build()
             .get()
